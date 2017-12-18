@@ -1,0 +1,21 @@
+{application, lpe,
+ [{description, "L(anding) P(age) E(ngine)"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { lpe_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    sync,
+    ssl,
+    cowboy
+   ]},
+  {env,[]},
+  {modules, [lpe_app, lpe_sup]},
+  {maintainers, []},
+  {licenses, ["MIT"]},
+  {links, []},
+  {env, [
+      {test,"ONLY TEST"}
+  ]}
+ ]}.

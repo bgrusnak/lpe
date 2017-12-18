@@ -1,0 +1,1 @@
+-define(TEMPLATE, "glint").
