@@ -11,40 +11,6 @@
 -export([start/2, stop/1]).
 
 
-processHandlersWithPath(Path) ->
-    {State, Value} = file:list_dir(Path),
-    case State of
-        ok -> 
-            lists:map(fun(File) ->
-                Module=list_to_atom(filename:rootname(filename:basename(File))),
-                apply(Module, desc, [])
-            end, Value);
-        _ -> []
-    end
-.
-
-processHandlers() ->
-    {State, Value} = file:get_cwd(),
-    case State of
-        ok -> processHandlersWithPath(filename:absname_join(Value, "src/handlers" ));
-        _ -> []
-    end
-.
-
-makeDispatch() ->
-    cowboy_router:compile([
-		{'_', 
-		    lists:append(
-                processHandlers(), 
-                [
-                    {"/static/[...]", cowboy_static, {priv_dir, lpe, "static"}}
-                ]
-            )	
-		}
-	])
-    %    
-.
-
 
 %%====================================================================
 %% API
@@ -52,8 +18,7 @@ makeDispatch() ->
 
 
 start(_StartType, _StartArgs) ->
-    io:format("~p~n", [env:get(test, "NOT TEST")]),
-    io:format("~p~n", [application:get_all_env()]),
+    db:start_link(),
     sync:go(),
     sync:onsync(fun(Mods) ->
         cowboy:set_env(http_listener, dispatch, makeDispatch()),
@@ -63,7 +28,7 @@ start(_StartType, _StartArgs) ->
         [{port, 8080}],
         #{
             env => #{dispatch => makeDispatch()},
-            middlewares => [cowboy_router, cors_middleware, cowboy_handler]
+            middlewares => generate_middlewares()
         }
     ),
     lpe_sup:start_link().
@@ -75,3 +40,55 @@ stop(_State) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
+
+generate_middlewares() ->
+        MW = db:execute(middlewares," select * from  \"middlewares\" WHERE \"enabled\" ORDER by \"order\"", []),
+        Middlewares = lists:map(fun(A) -> 
+            list_to_atom(binary_to_list(proplists:get_value(<<"function">>,A)))
+        end, maps:get(middlewares, MW)),
+        lists:append([[session_middleware], Middlewares, [ cors_middleware, cowboy_router,cowboy_handler]])
+.
+ 
+processHandlersWithPath(Path) ->
+    {State, Value} = file:list_dir(Path),
+    case State of
+        ok -> 
+            lists:map(fun(File) ->
+                Module=list_to_atom(filename:rootname(filename:basename(File))),
+                apply(Module, desc, [])
+            end, lists:sort(fun(A,B)->
+                A < B
+            end, Value));
+        _ -> []
+    end
+.
+
+processHandlers() ->
+    {State, Value} = file:get_cwd(),
+    Rt=case State of
+        ok -> processHandlersWithPath(filename:absname_join(Value, "src/handlers" ));
+        _ -> []
+    end,
+    lists:flatten(Rt)
+.
+
+makeDispatch() ->
+    SHandlers = lists:sort(fun(A,B) -> 
+            ALast = maps:get(order,A, 0),
+            BLast = maps:get(order,B, 0),
+            ALast < BLast 
+        end, processHandlers()),
+    Handlers = lists:map(fun(A)-> maps:get(handle,A) end, SHandlers),
+    cowboy_router:compile([
+		{'_', 
+		    lists:append(
+                Handlers, 
+                [
+                    {"/static/[...]", cowboy_static, {priv_dir, lpe, "static"}}
+                ]
+            )	
+		}
+	])
+    %    
+.
+
