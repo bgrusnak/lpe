@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+	<div class="col-sm-12">
+			<form class="form-horizontal" role="form" onsubmit="sendData(); return false;">
+				
+		<div class="tabbable">
+			<ul class="nav nav-tabs padding-12 tab-color-blue background-blue" id="myTab">
+				{% for section in settings %}
+				<li {% if forloop.first %}class="active"{% endif %}>
+					<a data-toggle="tab" href="#{{section.name|default:"empty_section_name"}}">{{section.title}}</a>
+				</li>
+				{% endfor %}
+			</ul>
+
+			<div class="tab-content">
+						{% for section in settings %}
+							<div id="{{section.name|default:"empty_section_name"}}" class="tab-pane{% if forloop.first %} in active{% endif %}">
+								<h3>{{section.description}}</h3>
+								
+								{% for item in section.items %}
+								<div class="form-group">
+										<label class="col-sm-2 control-label no-padding-right" for="{{item.group}}_{{item.name}}">{{item.title}}</label>
+										<div class="col-sm-10">
+												{% if item.type=="string" %}
+												<input type="text" id="{{item.group|default:""}}_{{item.name}}" placeholder="{{item.description}}" class="form-control"  oldvalue="{{item.value}}" value="{{item.value}}" />
+												{% endif %}
+												{% if item.type=="number" %}
+												<input type="text" id="{{item.group|default:""}}_{{item.name}}" placeholder="{{item.description}}" class="form-control" oldvalue="{{item.value}}"  value="{{item.value}}" />
+												{% endif %}
+												{% if item.type=="media" %}
+												<select class="chosen-select form-control" id="{{item.group|default:""}}_{{item.name}}" data-placeholder="{{item.description}}" oldvalue="{{item.value}}"  >
+														<option value="">  </option>
+														{% for libraryitem in library %}
+														<option value="{{libraryitem.filename}}"{% if (libraryitem.filename == item.value) %} selected {% endif %}>{{libraryitem.filename}}</option>  {% endfor %}	
+												</select>											
+												{% endif %}
+										</div>
+									</div>
+								{% endfor %}
+								
+							</div>
+					{% endfor %}
+
+			</div>
+		</div>
+		<div class="clearfix form-actions">
+				<div class="col-md-offset-3 col-md-9">
+					<button class="btn btn-info" type="submit">
+						<i class="ace-icon fa fa-check bigger-110"></i>
+						Submit
+					</button>
+
+					&nbsp; &nbsp; &nbsp;
+					<button class="btn" type="reset">
+						<i class="ace-icon fa fa-undo bigger-110"></i>
+						Reset
+					</button>
+				</div>
+			</div>
+		</form>
+	</div><!-- /.col -->
+</div
+><!-- {{settings}} -->
+<script type="text/javascript">
+function sendData () {
+	const list = [];
+	$('.form-control').each(function(index, item) {
+		const [group, key]=$(item).attr('id').split('_');
+		if ($(item).val()!=$(item).attr('oldvalue')) {
+			list.push({
+				group, key, value:$(item).val()
+			})
+		};
+	})
+  	if (list.length>0) $.ajax('/api/v1/options', 
+	  {
+		contentType:'application/json',
+		crossDomain:true,
+		data: JSON.stringify(list),
+		dataType:'json',
+		method:'POST',
+		success:function(data) {
+			list.forEach(item =>{
+				const name='#'+item.group+"_"+item.key;
+				$(name).attr('oldvalue', item.value);
+			});
+        	
+    	}
+	  });
+	return false;
+	};
+	
+</script>
+{% endblock %}
