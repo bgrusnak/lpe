@@ -29,7 +29,7 @@ set_headers(Headers, Req) ->
     
 
 set_cors_headers(Req) ->
-	#{headers := ReqHeaders} = Req,
+	ReqHeaders = cowboy_req:headers(Req),
 	Origin=maps:get(<<"origin">>, ReqHeaders, <<"http://localhost:8080">>),
 	Headers = [{<<"access-control-allow-origin">>, Origin},
 		{<<"access-control-allow-credentials">>, <<"true">>},

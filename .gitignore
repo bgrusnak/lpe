@@ -9,4 +9,8 @@ rel/example_project
 .concrete/DEV_MODE
 .rebar
 _build/*
-priv/static/themes/glint
+priv/*
+.~lock*
+*.docx
+rebar.lock
+*.lock

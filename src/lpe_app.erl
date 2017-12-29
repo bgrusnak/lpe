@@ -20,6 +20,7 @@
 start(_StartType, _StartArgs) ->
     db:start_link(),
     sync:go(),
+    cowboy_session:start(),
     sync:onsync(fun(Mods) ->
         cowboy:set_env(http_listener, dispatch, makeDispatch()),
         io:format("Reloaded Modules: ~p~n",[Mods]) 
@@ -46,7 +47,7 @@ generate_middlewares() ->
         Middlewares = lists:map(fun(A) -> 
             list_to_atom(binary_to_list(proplists:get_value(<<"function">>,A)))
         end, maps:get(middlewares, MW)),
-        lists:append([[session_middleware], Middlewares, [ cors_middleware, cowboy_router,cowboy_handler]])
+        lists:append([[cowboy_session], Middlewares, [ cors_middleware, cowboy_router,cowboy_handler]])
 .
  
 processHandlersWithPath(Path) ->
