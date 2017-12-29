@@ -12,11 +12,16 @@ Theme file is the .zip archive, containing the theme files and manifest. Manifes
         <preview>images/PREVIEW_IMAGE.png</preview>
         <options>
             <group name="sample">
-                <option name="testoption" title="TEST OPTION" type="string" order="0">The test option description</option>
-                <option name="optionwithoptions" title="DEFAULT" type="string" order="2">The option with degault value
+                <option name="testoption" title="TEST OPTION" type="string" order="0">
+                    The test option description
+                </option>
+                <option name="optionwithoptions" title="DEFAULT" type="string" order="2">
+                    The option with degault value
                     <default>default value</default>
                 </option>
-                <option name="mediaoption" title="Logo" type="media" order="1">Choose the file from the media gallery</option>
+                <option name="mediaoption" title="Logo" type="media" order="1">
+                    Choose the file from the media gallery
+                </option>
           </group>
      </options>
     </theme>
