@@ -20,26 +20,27 @@ check_auth(Req, Env) ->
         _ -> {stop,  cowboy_req:reply(303, #{
             <<"location">> => <<"/admin/login">>
         }, Req)}
-    end
+    end,
+    {ok, Req, Env}
 .
 
 validate_auth(Req, Env) ->   
     Query = cowboy_req:parse_qs(Req),
     Username = proplists:get_value(<<"username">>, Query, undefined),
     Password = proplists:get_value(<<"password">>, Query, undefined),
-    Remember = proplists:get_value(<<"remember">>, Query, undefined),
+ %   Remember = proplists:get_value(<<"remember">>, Query, undefined),
     L=options:get([<<"login">>, <<"access">>]),
     P = options:get([<<"password">>, <<"access">>]),
-    case Remember of
-        undefined -> ok ;
-        _ -> cowboy_session_config:set([{expire, 60*60*24*30}])
-    end,
+ %   case Remember of
+ %       undefined -> ok ;
+ %       _ -> cowboy_session_config:set([{expire, 60*60*24*30}])
+ %   end,
     case {Username, Password} of 
         {undefined, _} ->{ok, Req, Env};
         {_,undefined} ->{ok, Req, Env};
         {L, P} ->  
             {ok, Req1} = cowboy_session:set(authentified, true, Req),
-            {stop,  cowboy_req:reply(303, #{
+            {stop,  cowboy_req:reply(302, #{
                 <<"location">> => <<"/admin">>
             }, Req1)}
         ;

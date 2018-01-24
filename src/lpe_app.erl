@@ -21,6 +21,7 @@ start(_StartType, _StartArgs) ->
     db:start_link(),
     sync:go(),
     cowboy_session:start(),
+    application:start(fast_xml),
     sync:onsync(fun(Mods) ->
         cowboy:set_env(http_listener, dispatch, makeDispatch()),
         io:format("Reloaded Modules: ~p~n",[Mods]) 
