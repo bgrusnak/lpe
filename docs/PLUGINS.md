@@ -1,17 +1,19 @@
-# How to make themes for the LPE
+# How to make plugins for the LPE
 
 # File format
-Theme file is the .zip archive, containing the theme files and the manifest. The manifest is an xml file with the name "manifest.xml". During installation of the theme all files from the archive are unpacking to the folder with name according to the theme id. 
+Plugin file is the .zip archive, containing the plugin files and the manifest. The manifest is an xml file with the name "manifest.xml". During installation of the plugin all files from the archive are unpacking to the folder with name according to the plugin id and group. 
+The group usually is the author name, or "default" for the default bundled plugins.  
 
 # Manifest file format
     <?xml version="1.0" encoding="UTF-8" ?>
-    <theme>
-        <id>theme_id</id>
-        <name>THEME NAME</name>
+    <plugin>
+        <id>plugin_id</id>
+        <group>PLUGIN GROUP</group>
+        <name>PLUGIN NAME</name>
         <version>1.1</version>
         <author>My own name</author>
         <company>Nowhere company</company>
-        <url>https://go.to.my.site/my_theme</url>
+        <url>https://go.to.my.site/my_plugin</url>
         <description><![CDATA[
             Here is the long long <i>(~4k)</i> <b>html</b> description you can't read
         ]]></description>
@@ -31,4 +33,4 @@ Theme file is the .zip archive, containing the theme files and the manifest. The
                 </option>
           </group>
      </options>
-    </theme>
+    </plugin>

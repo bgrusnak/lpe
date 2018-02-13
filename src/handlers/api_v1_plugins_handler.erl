@@ -1,4 +1,4 @@
--module(api_v1_themes_handler).
+-module(api_v1_plugins_handler).
 
 -include("include/constants.hrl").
 
@@ -9,7 +9,7 @@
 
 desc() ->
     [
-        #{handle => {"/api/v1/themes", ?MODULE, []}, order => 0}
+        #{handle => {"/api/v1/plugins", ?MODULE, []}, order => 0}
     ]
 .
 
@@ -27,12 +27,7 @@ json_answer(Req, State) ->
         undefined -> ok;
         _ -> db:execute(themes,"update \"themes\" set \"active\" = CASE WHEN \"id\" = $1 THEN true ELSE false END ", [Activate])
     end,
-    Data = db:execute(themes," select * from  \"themes\" ORDER by name", 
+    Data = db:execute(plugins," select * from  \"plugins\" ORDER by name", 
         []),
-    Body = lists:map(fun(A) ->
-            N=proplists:get_value(<<"name">>, A),
-            P=proplists:get_value(<<"preview">>, A),
-            I=proplists:get_value(<<"id">>, A),
-        #{name => N, id=> I, image => << "/static/themes/", I/binary, "/", P/binary >>}
-    end, maps:get(themes, Data)),
+    Body = maps:get(plugins, Data),
 	{jsx:encode(Body), Req, State}.

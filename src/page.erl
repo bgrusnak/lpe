@@ -1,6 +1,6 @@
 -module(page).
 
--export([get/1, get/2, set/3, breadcrumbs/1]).
+-export([get/1, get/2, set/3, breadcrumbs/1, menu/1, chips/1]).
 
 get(Page) ->
     get(Page, [])
@@ -33,4 +33,41 @@ breadcrumbs(Path) ->
         [] -> [];
         Any -> Any
     end
+.
+
+menu(Parent) ->
+    Got = case maps:get(page, db:execute(page,"select * from menu order by parent_id ASC NULLS FIRST, \"order\" ASC NULLS LAST", [])) of
+        [] -> [];
+        Any -> Any
+    end,
+    Tops = lists:filter(fun(Curr)-> 
+            case proplists:get_value(<<"parent_id">>, Curr) of
+                null -> true;
+                _ -> false
+            end
+    end, Got ),
+    lists:map(fun(Curr) ->
+        Id =  proplists:get_value(<<"id">>, Curr),
+        Path = proplists:get_value(<<"path">>, Curr),
+        Childed = lists:append(Curr, [{<<"childs">>, lists:map(fun(Ch)-> 
+                CPath = proplists:get_value(<<"path">>, Ch),
+                lists:keyreplace(<<"path">>, 1, Ch, {<<"path">>, << Parent/binary, "/", Path/binary, "/", CPath/binary >>})
+            end, lists:filter(fun(Ch)->
+            case proplists:get_value(<<"parent_id">>, Ch) of
+               Id -> true;
+                _ -> false
+            end
+        end, Got))}]),
+        lists:keyreplace(<<"path">>, 1, Childed, {<<"path">>, << Parent/binary, "/", Path/binary >> })
+    end, Tops)
+.
+
+chips(Req) ->
+    Chips = case maps:get(page, db:execute(page,"select * from chips", [])) of
+        [] -> [];
+        Any -> Any
+    end,
+    lists:map(fun(Chip)->
+        {proplists:get_value(<<"name">>, Chip), apply(list_to_atom(binary_to_list(proplists:get_value(<<"module">>, Chip))), list_to_atom(binary_to_list(proplists:get_value(<<"function">>, Chip))), [Req])}
+    end, Chips)
 .

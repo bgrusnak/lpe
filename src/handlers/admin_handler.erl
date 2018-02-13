@@ -32,7 +32,7 @@ init(Req0, Opts) ->
         [Function2] ->apply(list_to_atom(binary_to_list(Function2)),  [Req0, Page]);
         Function3 ->apply(list_to_atom(binary_to_list(Function3)),  [Req0, Page])
     end,
-    {_,Rendered} = Template:render(lists:append(Data, [{page,Page}, {breadcrumbs, page:breadcrumbs(Path)}])),
+    {_,Rendered} = Template:render(lists:append(Data, [{page,Page}, {menu, page:menu(<<"/admin">>)}, {breadcrumbs, page:breadcrumbs(Path)}])),
 	Req = cowboy_req:reply(200, #{
 		<<"content-type">> => <<"text/html">>
 	}, Rendered, Req0),
