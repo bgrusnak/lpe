@@ -33,7 +33,7 @@ init(Req, Opts) ->
     Groups = lists:map(fun(Group) ->
             parse_group(Group)
     end, RawGroups),   
-    db:execute(file," INSERT INTO \"themes\" (\"id\", \"name\", \"version\", \"author\", \"company\", \"description\", \"preview\", \"url\", \"default\", \"saved\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)",
+    db:execute(file," INSERT INTO \"plugins\" (\"id\", \"name\", \"version\", \"author\", \"company\", \"description\", \"preview\", \"url\", \"default\", \"saved\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)",
     [
         Id, Name, Version, Author, Company, Description, Preview, Url, jsx:encode(Groups)
     ]),
@@ -53,13 +53,21 @@ parse_group(Group) ->
     Description = list_to_binary(string:trim(binary_to_list(get_tag_cdata(Group)))),
     {_,Name} = fxml:get_tag_attr(<<"name">>, Group),
     {_,Title} = fxml:get_tag_attr(<<"title">>, Group),
+    GroupOrder = case fxml:get_tag_attr(<<"order">>, Group) of
+        {_, A} -> A;
+        false -> 0
+    end,
+    options:addGroup(Name, Title, Description, GroupOrder),
     RawOptions = fxml:get_subtags(Group, <<"option">>),
     Options = lists:map(fun(Option) ->
             OptionDescription = list_to_binary(string:trim(binary_to_list(get_tag_cdata(Option)))),
             {_,OptionName} = fxml:get_tag_attr(<<"name">>, Option),
             {_,OptionTitle} = fxml:get_tag_attr(<<"title">>, Option),
             {_,Type} = fxml:get_tag_attr(<<"type">>, Option),
-            {_,Order} = fxml:get_tag_attr(<<"order">>, Option),
+            OptionOrder =  case fxml:get_tag_attr(<<"order">>, Option) of
+                {_, B} -> B;
+                false -> 0
+            end,
             #xmlel{children = RawChildrens} = Option,
             Childrens = lists:foldl(fun(Item, Items)->
                     case Item of
@@ -68,7 +76,8 @@ parse_group(Group) ->
                         _ -> Items
                     end
                 end, [], RawChildrens),
-            #{description => OptionDescription, name => OptionName, title => OptionTitle, type => Type, order=> Order,  options => Childrens}
+            options:addListItem(Name, OptionName, OptionTitle, OptionDescription, OptionOrder, Type, Childrens),
+            #{description => OptionDescription, name => OptionName, title => OptionTitle, type => Type, order=> OptionOrder,  options => Childrens}
         end, RawOptions),
     #{description => Description, name => Name, title => Title, options => Options}
 .

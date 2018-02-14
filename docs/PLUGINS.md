@@ -3,6 +3,8 @@
 # File format
 Plugin file is the .zip archive, containing the plugin files and the manifest. The manifest is an xml file with the name "manifest.xml". During installation of the plugin all files from the archive are unpacking to the folder with name according to the plugin id and group. 
 The group usually is the author name, or "default" for the default bundled plugins.  
+The options section is similar like themes.
+The chips section contains data processing items (module and function names), each of them receiving one variable - Request and answering the data, which will be passed to the page template with the given property name.
 
 # Manifest file format
     <?xml version="1.0" encoding="UTF-8" ?>
@@ -31,6 +33,13 @@ The group usually is the author name, or "default" for the default bundled plugi
                 <option name="mediaoption" title="Logo" type="media" order="1">
                     Choose the file from the media gallery
                 </option>
-          </group>
-     </options>
+            </group>
+        </options>
+        <chips>
+            <chip>
+                <name>Chip name</name>
+                <module>Module name</module>
+                <function>Function name</function>
+            </chip>
+        </chips>
     </plugin>

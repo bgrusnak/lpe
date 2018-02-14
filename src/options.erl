@@ -1,6 +1,6 @@
 -module(options).
 
--export([get/1, get/2, set/2, tree/0, defineDefaultValue/1, defineDefaultValue/2, treePage/2]).
+-export([get/1, get/2, set/2, tree/0, defineDefaultValue/1, defineDefaultValue/2, treePage/2, addGroup/4, addListItem/7]).
 
 
 get(Key) ->
@@ -32,11 +32,25 @@ set(KeyGroup, Value) ->
         [_,_] -> KeyGroup;
         _ -> [KeyGroup, <<>>]
     end,
-    Connection=db:connection(),
-    epgsql:equery(Connection,
-    "INSERT INTO \"options\" (\"name\", \"group\", \"value\") VALUES ($1, $2, $3)", 
-    [Key, Group, jsx:encode(Value)
-    ])
+    db:execute(any,"INSERT INTO \"options\" (\"name\", \"group\", \"value\") VALUES ($1, $2, $3)", 
+    [Key, Group, jsx:encode(Value)])
+.
+
+addGroup(Name, Title, Description, Order) ->
+    Item = db:execute(item," select * from  \"optionsgroups\" WHERE \"name\" = $1", [Name]),
+    case maps:get(gallery, Item, undefined) of 
+        undefined ->
+            db:execute(gallery," INSERT INTO \"optionsgroups\" (\"name\", \"title\", \"order\", \"description\") VALUES ($1, $2, $3, $4)", [Name, Title, Order, Description]);
+        _ -> ok
+    end
+.
+addListItem(Group, Name, Title, Description, Order, Type, Options) ->
+    Item = db:execute(item," select * from  \"optionsgroups\" WHERE \"name\" = $1", [Name]),
+    case maps:get(gallery, Item, undefined) of 
+        undefined -> error;
+        _ ->
+            db:execute(gallery," INSERT INTO \"optionslist\" (\"group\", \"name\", \"title\", \"description\", \"order\", \"type\", \"options\") VALUES ($1, $2, $3, $4, $5, $6, $7)", [Group, Name, Title, Description, Order, Type, Options])
+    end
 .
 
 tree() ->    
